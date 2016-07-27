@@ -70,7 +70,6 @@ controller.on('slash_command', function (bot, message) {
 
 function gameCommand(bot, message) {
     if (message.token == process.env.SLACK_BGG_CMD_TOKEN) {
-        console.log('okay');
         bgg('/search', {query: message.text, type: 'boardgame'}, function (res) {
             var results = res.items.item;
 
@@ -126,25 +125,27 @@ function replyGame(bot, message, gameId) {
             text: 'This is what I found for “' + message.text + '”',
             attachments: [
                 {
-                    title: info.name[0].value + ' (' + yearpublished.value + ')',
-                    title_link: 'http://www.imdb.com/title/'+info.imdb_id,
-                    thumb_url: thumb,
-                    text: info.overview,
+                    title: info.name[0].value + ' (' + info.yearpublished.value + ')',
+                    title_link: 'https://boardgamegeek.com/boardgame/'+info.id,
+                    thumb_url: info.thumbnail.replace('//', 'https://'),
+                    text: info.description,
                     fields: [
                         {
-                            title: 'Released',
-                            value: release,
+                            title: 'Rating',
+                            value: info.statistics.ratings.ranks.rank[0].bayesaverage,
                             short: true
                         },
                         {
-                            title: 'Runtime',
-                            value: (info.runtime) + ' min',
+                            title: 'Playing Time',
+                            value: (info.playingtime.value) + ' minutes',
                             short: true
                         },
                         {
-                            title: 'Cast',
-                            value: credits.cast.slice(0, 4).map(function (cur) {
-                                return cur.name;
+                            title: 'Core Mechanics',
+                            value: info.link.filter(function (cur) {
+                                return cur.type == 'boardgamemechanic';
+                            }).map(function (cur) {
+                                return cur.value;
                             }).join(', '),
                             short: true
                         }
