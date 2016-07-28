@@ -86,11 +86,14 @@ function gameCommand(bot, message) {
             var year = -99999;
             var match = null;
             matches.forEach(function (elem) {
-                if (elem.yearpublished.value > year) {
+                if (elem.yearpublished && elem.yearpublished.value > year) {
                     match = elem;
                     year = elem.yearpublished.value;
                 }
             });
+            if (match == null) {
+                bot.replyPrivate(message, 'There was an error looking up your request.');
+            }
             replyGame(bot, message, match.id);
         });
     }
@@ -114,25 +117,29 @@ function replyGame(bot, message, gameId) {
         stats: 1
     };
     bgg('/thing', options, function (res) {
-        console.log(prettyjson.render(res));
         var info = res.items.item;
+        console.log(prettyjson.render(info));
         // var year = info.release_date.substring(0, 4);
         // var thumb = configuration.images.base_url
         //     + configuration.images.poster_sizes[0]
         //     + info.poster_path;
         // var release = moment(info.release_date).format('dddd, MMMM Do YYYY');
+        var title = (info.name instanceof Array) ? info.name[0].value : info.name.value;
+        var rank = (info.statistics.ratings.ranks.rank instanceof Array) ?
+            info.statistics.ratings.ranks.rank[0].bayesaverage :
+            'Unranked';
         bot.replyPublicDelayed(message, {
             text: 'This is what I found for “' + message.text + '”',
             attachments: [
                 {
-                    title: info.name[0].value + ' (' + info.yearpublished.value + ')',
+                    title: title + ' (' + info.yearpublished.value + ')',
                     title_link: 'https://boardgamegeek.com/boardgame/'+info.id,
                     thumb_url: info.thumbnail.replace('//', 'https://'),
                     text: info.description,
                     fields: [
                         {
                             title: 'Rating',
-                            value: info.statistics.ratings.ranks.rank[0].bayesaverage,
+                            value: rank,
                             short: true
                         },
                         {
