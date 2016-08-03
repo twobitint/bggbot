@@ -73,24 +73,27 @@ function gameCommand(bot, message) {
         bgg('/search', {query: message.text, type: 'boardgame'}, function (res) {
             var results = res.items.item;
 
-            if (results.length == 0) {
-                bot.replyPrivate(message, 'No results found for “'+message.text+'”.');
-            }
-            var matches = results.filter(function (elem) {
-                return elem.name.value.toUpperCase() == message.text.toUpperCase();
-            });
-            if (matches.length == 0) {
-                matches = results;
-            }
-
-            var year = -99999;
-            var match = null;
-            matches.forEach(function (elem) {
-                if (elem.yearpublished && elem.yearpublished.value > year) {
-                    match = elem;
-                    year = elem.yearpublished.value;
+            var match = results;
+            if (Array.isArray(results)) {
+                if (results.length == 0) {
+                    bot.replyPrivate(message, 'No results found for “'+message.text+'”.');
                 }
-            });
+                var matches = results.filter(function (elem) {
+                    return elem.name.value.toUpperCase() == message.text.toUpperCase();
+                });
+                if (matches.length == 0) {
+                    matches = results;
+                }
+
+                var year = -99999;
+                var match = null;
+                matches.forEach(function (elem) {
+                    if (elem.yearpublished && elem.yearpublished.value > year) {
+                        match = elem;
+                        year = elem.yearpublished.value;
+                    }
+                });
+            }
             if (match == null) {
                 bot.replyPrivate(message, 'There was an error looking up your request.');
             }
